@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Generador de Registros Auxiliares</title>
+    
+    <!-- Google Fonts: Poppins para un look moderno -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Font Awesome para íconos -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    
+    <!-- Enlace a nuestra hoja de estilos -->
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <div class="container">
+        <header>
+            <h1>Generador de Registros Auxiliares</h1>
+            <p class="credits">Creado por <strong>Juan Manuel Caicedo Oliva</strong> | Potenciado por <strong>Gemini de Google</strong></p>
+        </header>
+
+        <!-- Asistente de Pasos Múltiples -->
+        <div class="wizard-form">
+            <!-- Barra de Progreso -->
+            <div class="progress-bar">
+                <div class="step active" id="progress-step-1"><span>1</span><p>Datos</p></div>
+                <div class="step" id="progress-step-2"><span>2</span><p>Área</p></div>
+                <div class="step" id="progress-step-3"><span>3</span><p>Alumnos</p></div>
+                <div class="step" id="progress-step-4"><span>4</span><p>Generar</p></div>
+            </div>
+
+            <form id="main-form">
+                <!-- ====================================================== -->
+                <!-- PASO 1: Datos Generales                              -->
+                <!-- ====================================================== -->
+                <div class="form-step active" id="step-1">
+                    <h2 class="step-title">Información General</h2>
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="docente">Nombre del Docente</label>
+                            <input type="text" id="docente" name="docente" value="Juan Manuel Caicedo Oliva" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="colegio">Institución Educativa</label>
+                            <input type="text" id="colegio" name="colegio" value="I.E. Ángel Custodio Ramirez" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="anio">Año Lectivo</label>
+                            <input type="number" id="anio" name="anio" value="2025" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="nivel">Nivel Educativo</label>
+                            <select id="nivel" name="nivel" required>
+                                <option value="" disabled selected>Seleccione un nivel</option>
+                                <option value="Inicial">Inicial</option>
+                                <option value="Primaria">Primaria</option>
+                                <option value="Secundaria">Secundaria</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="grado">Grado</label>
+                            <select id="grado" name="grado" required disabled>
+                                <option>Primero elija un nivel</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="seccion">Sección</label>
+                            <input type="text" id="seccion" name="seccion" placeholder="Ej: A, B, Única" required>
+                        </div>
+                    </div>
+                    <div class="button-group">
+                        <button type="button" class="btn btn-next">Siguiente <i class="fas fa-arrow-right"></i></button>
+                    </div>
+                </div>
+
+                <!-- ====================================================== -->
+                <!-- PASO 2: Área y Sistema de Evaluación                 -->
+                <!-- ====================================================== -->
+                <div class="form-step" id="step-2">
+                    <h2 class="step-title">Área y Sistema de Evaluación</h2>
+                    <div class="form-group">
+                        <label for="area">Área Curricular</label>
+                        <select id="area" name="area" required disabled>
+                           <option>Primero elija un nivel</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Periodo de Evaluación</label>
+                        <div class="radio-group">
+                            <input type="radio" id="bimestre" name="periodo" value="Bimestre" checked><label for="bimestre">Bimestre</label>
+                            <input type="radio" id="trimestre" name="periodo" value="Trimestre"><label for="trimestre">Trimestre</label>
+                        </div>
+                    </div>
+                     <div class="form-group">
+                        <label>Tipo de Calificación</label>
+                        <div class="radio-group">
+                            <input type="radio" id="cualitativo" name="calificacion" value="Cualitativo" checked><label for="cualitativo">Cualitativo (AD, A, B, C)</label>
+                            <input type="radio" id="vigesimal" name="calificacion" value="Vigesimal"><label for="vigesimal">Vigesimal (0-20)</label>
+                            <input type="radio" id="decimal" name="calificacion" value="Decimal"><label for="decimal">Decimal (0-10)</label>
+                        </div>
+                    </div>
+                    <div class="button-group">
+                        <button type="button" class="btn btn-prev"><i class="fas fa-arrow-left"></i> Anterior</button>
+                        <button type="button" class="btn btn-next">Siguiente <i class="fas fa-arrow-right"></i></button>
+                    </div>
+                </div>
+
+                <!-- ====================================================== -->
+                <!-- PASO 3: Lista de Alumnos                             -->
+                <!-- ====================================================== -->
+                <div class="form-step" id="step-3">
+                    <h2 class="step-title">Lista de Estudiantes</h2>
+                    <div class="form-group">
+                        <label for="alumnos">Copie y pegue la lista de sus alumnos aquí (uno por línea).</label>
+                        <textarea id="alumnos" name="alumnos" rows="15" placeholder="1. Apellido 1, Nombre 1&#10;2. Apellido 2, Nombre 2&#10;3. Apellido 3, Nombre 3" required></textarea>
+                    </div>
+                     <div class="button-group">
+                        <button type="button" class="btn btn-prev"><i class="fas fa-arrow-left"></i> Anterior</button>
+                        <button type="button" class="btn btn-next">Siguiente <i class="fas fa-arrow-right"></i></button>
+                    </div>
+                </div>
+
+                <!-- ====================================================== -->
+                <!-- PASO 4: Generación y Descarga                        -->
+                <!-- ====================================================== -->
+                <div class="form-step" id="step-4">
+                    <div class="generation-status text-center">
+                        <i class="fas fa-rocket fa-3x icon-ready"></i>
+                        <h2 class="step-title">¡Todo Listo!</h2>
+                        <p>Hemos recopilado toda la información. <br>Presione el botón para generar su registro auxiliar.</p>
+                        <div id="status-messages"></div>
+                        <button type="button" class="btn btn-generate" id="generate-btn"><i class="fas fa-cogs"></i> Generar Registro</button>
+                        <a href="#" class="btn btn-download" id="download-link" style="display:none;"><i class="fas fa-file-excel"></i> Descargar Excel</a>
+                        <!-- BOTÓN NUEVO AÑADIDO -->
+                        <button type="button" class="btn btn-secondary" id="reset-btn" style="display:none;"><i class="fas fa-redo-alt"></i> Generar Otro Registro</button>
+                    </div>
+                    <div class="button-group">
+                        <button type="button" class="btn btn-prev"><i class="fas fa-arrow-left"></i> Anterior</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- ===== SCRIPTS JAVASCRIPT ===== -->
+    <!-- 1. Cargar el cerebro de datos curriculares (DEBE IR PRIMERO) -->
+    <script src="js/curricular-data.js"></script>
+    <!-- 2. Cargar la lógica principal de la aplicación -->
+    <script src="js/app.js"></script>
+
+</body>
+</html>
