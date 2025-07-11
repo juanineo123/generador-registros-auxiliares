@@ -58,7 +58,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 return false;
             } else {
                 input.classList.remove('input-error');
-                 let errorMsg = input.parentNode.querySelector('.error-message');
+                let errorMsg = input.parentNode.querySelector('.error-message');
                 if (errorMsg) {
                     errorMsg.remove();
                 }
@@ -87,13 +87,13 @@ document.addEventListener('DOMContentLoaded', () => {
             gradoSelect.disabled = false;
         }
     };
-    
+
     const populateAreas = () => {
         const nivel = nivelSelect.value;
         const grado = gradoSelect.value;
         areaSelect.innerHTML = '<option value="" disabled selected>Seleccione un área</option>';
         areaSelect.disabled = true;
-    
+
         if (nivel && grado && CNEB_DATA[nivel]?.[grado]) {
             const areas = Object.keys(CNEB_DATA[nivel][grado]);
             areas.forEach(area => {
@@ -105,7 +105,7 @@ document.addEventListener('DOMContentLoaded', () => {
             areaSelect.disabled = false;
         }
     };
-    
+
     const showStatusMessage = (message, type = 'loading') => {
         const messageDiv = document.createElement('div');
         messageDiv.className = `status-message ${type}`;
@@ -119,7 +119,52 @@ document.addEventListener('DOMContentLoaded', () => {
     const resetForm = () => {
         location.reload();
     };
+    // --- 3.5 LÓGICA DE REINTENTOS PARA LA API ---
+    const MAXIMOS_INTENTOS = 3;
+    const ESPERA_ENTRE_INTENTOS_MS = 3000; // Un poco más de espera para la generación de archivos
 
+    async function callApiWithRetries(url, payload, initialMessage) {
+        let ultimoError = null;
+
+        for (let intento = 1; intento <= MAXIMOS_INTENTOS; intento++) {
+            try {
+                // Mostramos el mensaje de estado adecuado para cada intento
+                if (intento > 1) {
+                    showStatusMessage(`La conexión es lenta. Reintentando... (${intento}/${MAXIMOS_INTENTOS})`, 'loading');
+                } else {
+                    showStatusMessage(initialMessage, 'loading');
+                }
+
+                const response = await fetch(url, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                if (response.ok) {
+                    return response; // Éxito, devolvemos la respuesta completa
+                }
+
+                // Si hay un error de servidor temporal, lo capturamos para reintentar
+                if (response.status >= 500) {
+                    throw new Error(`Error de servidor temporal: ${response.status}`);
+                }
+
+                // Si es otro tipo de error (ej: 4xx), no reintentamos
+                const errorData = await response.json();
+                throw new Error(errorData.error || `Error de API no recuperable: ${response.status}`);
+
+            } catch (error) {
+                ultimoError = error;
+                console.error(`Falló el intento #${intento}:`, error.message);
+                if (intento < MAXIMOS_INTENTOS) {
+                    await new Promise(resolve => setTimeout(resolve, ESPERA_ENTRE_INTENTOS_MS));
+                }
+            }
+        }
+        // Si todos los intentos fallan, lanzamos el último error
+        throw ultimoError;
+    }
 
     // --- 4. MANEJO DE EVENTOS ---
 
@@ -156,49 +201,43 @@ document.addEventListener('DOMContentLoaded', () => {
         data.alumnos = data.alumnos.split('\n').filter(line => line.trim() !== '');
 
         try {
-            // --- PASO 1: Obtener Competencias desde el objeto local CNEB_DATA ---
+            // --- PASO 1: Obtener Competencias (localmente) ---
             showStatusMessage('Obteniendo currículo desde la base de datos local...', 'loading');
-            
             const { nivel, grado, area } = data;
             const curricularInfo = CNEB_DATA?.[nivel]?.[grado]?.[area];
 
             if (!curricularInfo || !curricularInfo.competencies) {
-                 throw new Error(`No se encontró data curricular para ${area} en ${grado}. Verifique 'curricular-data.js'.`);
+                throw new Error(`No se encontró data curricular para ${area} en ${grado}. Verifique 'curricular-data.js'.`);
             }
-            
+
             showStatusMessage('Currículo local cargado con éxito.', 'success');
-            
+
             const finalPayload = {
                 ...data,
                 competencies: curricularInfo.competencies
             };
 
-            // --- PASO 2: Generar el archivo Excel llamando a la función serverless ---
-            showStatusMessage('Construyendo el archivo de Excel...', 'loading');
-            const excelResponse = await fetch('/.netlify/functions/generate-excel', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(finalPayload)
-            });
+            // --- PASO 2: Generar Excel usando la función con reintentos ---
+            const excelResponse = await callApiWithRetries(
+                '/.netlify/functions/generate-excel',
+                finalPayload,
+                'Construyendo el archivo de Excel...' // Mensaje inicial
+            );
 
-            if (!excelResponse.ok) {
-                const errorResult = await excelResponse.json();
-                throw new Error(`Error al generar Excel: ${errorResult.error || 'Respuesta no válida del servidor.'}`);
-            }
-
+            // El resto de la lógica no cambia
             const blob = await excelResponse.blob();
             const url = window.URL.createObjectURL(blob);
             downloadLink.href = url;
             const fileName = `Registro_Auxiliar_${data.area.replace(/\s/g, '_')}_${data.grado}.xlsx`;
             downloadLink.setAttribute('download', fileName);
-            
+
             showStatusMessage('¡Archivo Excel listo para descargar!', 'success');
             generateBtn.style.display = 'none';
             downloadLink.style.display = 'inline-flex';
-            resetBtn.style.display = 'inline-flex'; // Mostrar el nuevo botón
+            resetBtn.style.display = 'inline-flex';
 
         } catch (error) {
-            console.error('Ha ocurrido un error en la generación:', error);
+            console.error('Ha ocurrido un error en la generación tras varios intentos:', error);
             showStatusMessage(`Error: ${error.message}`, 'error');
             generateBtn.disabled = false;
             generateBtn.innerHTML = '<i class="fas fa-cogs"></i> Reintentar Generación';
